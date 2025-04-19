@@ -9,8 +9,10 @@ from sentence_transformers import SentenceTransformer, util
 
 app = FastAPI()
 
-
 model = SentenceTransformer("all-MiniLM-L6-v2")
+
+embeddings = np.load("embeddings.npy")
+df = pd.read_pickle("medicine_data2.pkl")
 
 class MedicineQuery(BaseModel):
     query: str
