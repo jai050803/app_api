@@ -9,6 +9,10 @@ from sentence_transformers import SentenceTransformer, util
 
 app = FastAPI()
 
+df = pd.read_csv("Medicine_Details.csv")
+df['Medicine Name'] = df['Medicine Name'].str.strip().str.lower()
+
+
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 embeddings = np.load("embeddings.npy")
@@ -16,6 +20,15 @@ df = pd.read_pickle("medicine_data2.pkl")
 
 class MedicineQuery(BaseModel):
     query: str
+
+def get_medicine_details(name):
+    name = name.strip().lower()
+    match = df[df['Medicine Name'] == name]
+    if match.empty:
+        return {"error": "Medicine not found"}
+    else:
+        return match.iloc[0].to_dict()
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,10 +38,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.get('/')
 def read_root():
     return {"message" : " hello from the fastapi"}
+
+
+class MedicineQuery(BaseModel):
+    name: str
+
+@app.post("/get_medicine_details/")
+def get_details(query: MedicineQuery):
+    return get_medicine_details(query.name)
 
 @app.post("/search_medicine")
 async def search_medicine(query: MedicineQuery):
